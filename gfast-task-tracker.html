@@ -1,0 +1,1002 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>G-Fast Task Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+:root {
+  --white: #ffffff;
+  --bg: #f7f6f3;
+  --border: #e8e4dc;
+  --border-dark: #d0cab8;
+  --text: #1a1814;
+  --text-2: #6b6358;
+  --text-3: #a09890;
+  --accent: #c94b1e;
+  --accent-light: #fdf0eb;
+
+  --s-todo: #e8e4dc;
+  --s-todo-text: #6b6358;
+  --s-inprogress: #dbeafe;
+  --s-inprogress-text: #1d4ed8;
+  --s-blocked: #fee2e2;
+  --s-blocked-text: #b91c1c;
+  --s-done: #dcfce7;
+  --s-done-text: #15803d;
+  --s-deferred: #fef3c7;
+  --s-deferred-text: #92400e;
+
+  --p1: #fff1ee;
+  --p1-border: #fbd0c4;
+  --p1-text: #c94b1e;
+  --p2: #eff6ff;
+  --p2-border: #bfdbfe;
+  --p2-text: #1d4ed8;
+  --p3: #f0fdf4;
+  --p3-border: #bbf7d0;
+  --p3-text: #15803d;
+}
+
+body {
+  background: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  font-size: 13px;
+  min-height: 100vh;
+}
+
+/* HEADER */
+.header {
+  background: var(--white);
+  border-bottom: 2px solid var(--text);
+  padding: 20px 28px;
+  position: sticky; top: 0; z-index: 100;
+  display: flex; align-items: center; justify-content: space-between;
+  flex-wrap: wrap; gap: 12px;
+}
+
+.header-left { display:flex; align-items:center; gap:16px; }
+
+.logo {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px; font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--text);
+}
+
+.logo span { color: var(--accent); }
+
+.header-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border-left: 1px solid var(--border);
+  padding-left: 16px;
+}
+
+.header-right { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+
+.stat-pill {
+  display:flex; align-items:center; gap:6px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 5px 12px;
+  font-size: 11px;
+  color: var(--text-2);
+}
+
+.stat-pill strong { color: var(--text); font-weight: 600; }
+
+/* FILTERS */
+.toolbar {
+  background: var(--white);
+  border-bottom: 1px solid var(--border);
+  padding: 12px 28px;
+  display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+}
+
+.filter-label { font-size: 11px; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.1em; margin-right: 4px; }
+
+.filter-btn {
+  border: 1px solid var(--border);
+  background: var(--white);
+  padding: 5px 12px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text-2);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.filter-btn:hover { border-color: var(--text); color: var(--text); }
+.filter-btn.active { background: var(--text); color: white; border-color: var(--text); }
+
+.search-wrap {
+  margin-left: auto;
+  position: relative;
+}
+
+.search-wrap input {
+  border: 1px solid var(--border);
+  background: var(--bg);
+  padding: 6px 12px 6px 30px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  width: 200px;
+  outline: none;
+  transition: border 0.15s;
+}
+
+.search-wrap input:focus { border-color: var(--text); background: var(--white); }
+.search-wrap::before { content:'⌕'; position:absolute; left:9px; top:50%; transform:translateY(-50%); color:var(--text-3); font-size:14px; }
+
+/* ADD TASK BTN */
+.add-btn {
+  background: var(--accent);
+  color: white;
+  border: none;
+  padding: 7px 16px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-family: 'DM Sans', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.add-btn:hover { background: #a83e18; }
+
+/* PHASE SECTIONS */
+.phase-section { margin: 20px 28px; }
+
+.phase-header-row {
+  display: flex; align-items: center; gap: 12px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.phase-toggle { font-size: 10px; color: var(--text-3); transition: transform 0.2s; }
+.phase-toggle.collapsed { transform: rotate(-90deg); }
+
+.phase-title-label {
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.phase-days {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-left: 2px;
+}
+
+.phase-count {
+  font-size: 11px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 2px 8px;
+  color: var(--text-2);
+  margin-left: auto;
+}
+
+/* TABLE */
+.table-wrap {
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  overflow-x: auto;
+}
+
+.task-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 900px;
+}
+
+.task-table thead tr {
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+}
+
+.task-table th {
+  padding: 9px 14px;
+  text-align: left;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.task-table th.sortable { cursor: pointer; }
+.task-table th.sortable:hover { color: var(--text); }
+
+.task-table tbody tr {
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+}
+
+.task-table tbody tr:last-child { border-bottom: none; }
+.task-table tbody tr:hover { background: #faf9f6; }
+.task-table tbody tr.done-row { opacity: 0.6; }
+
+.task-table td {
+  padding: 11px 14px;
+  vertical-align: middle;
+}
+
+/* TASK NAME */
+.task-name-cell { min-width: 220px; max-width: 300px; }
+
+.task-name {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  line-height: 1.4;
+  cursor: pointer;
+}
+
+.task-name:hover { color: var(--accent); }
+
+.task-desc {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-top: 2px;
+  line-height: 1.4;
+}
+
+/* PHASE BADGE IN TASK */
+.phase-badge {
+  display: inline-block;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 2px;
+  margin-bottom: 4px;
+}
+
+/* STATUS BADGE */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  padding: 4px 9px;
+  border-radius: 3px;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  font-family: 'DM Sans', sans-serif;
+  transition: opacity 0.15s;
+}
+
+.status-badge:hover { opacity: 0.8; }
+.status-badge.todo { background:var(--s-todo); color:var(--s-todo-text); }
+.status-badge.inprogress { background:var(--s-inprogress); color:var(--s-inprogress-text); }
+.status-badge.blocked { background:var(--s-blocked); color:var(--s-blocked-text); }
+.status-badge.done { background:var(--s-done); color:var(--s-done-text); }
+.status-badge.deferred { background:var(--s-deferred); color:var(--s-deferred-text); }
+
+/* EDITABLE CELLS */
+.editable {
+  border: 1px solid transparent;
+  border-radius: 3px;
+  padding: 4px 7px;
+  cursor: pointer;
+  font-size: 12px;
+  color: var(--text-2);
+  transition: all 0.12s;
+  min-width: 80px;
+  display: inline-block;
+}
+
+.editable:hover { border-color: var(--border); background: var(--bg); }
+.editable:focus { border-color: var(--accent); background: var(--white); outline: none; color: var(--text); }
+
+.editable.empty { color: var(--text-3); font-style: italic; }
+
+/* DEPENDENCY TAG */
+.dep-tag {
+  display: inline-block;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+  padding: 2px 7px;
+  font-size: 11px;
+  color: var(--text-2);
+  margin: 2px 2px 2px 0;
+  white-space: nowrap;
+}
+
+/* DATE CELL */
+.date-cell { white-space: nowrap; font-size: 12px; color: var(--text-2); }
+.date-cell.overdue { color: #b91c1c; }
+.date-cell.upcoming { color: #1d4ed8; }
+
+/* OWNER CELL */
+.owner-cell {
+  display: flex; align-items: center; gap: 6px;
+}
+
+.owner-avatar {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--text);
+  color: white;
+  font-size: 9px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+/* MODAL */
+.modal-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(26,24,20,0.5);
+  z-index: 200;
+  align-items: center; justify-content: center;
+}
+
+.modal-overlay.open { display: flex; }
+
+.modal {
+  background: var(--white);
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  width: 520px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity:0; }
+  to { transform: translateY(0); opacity:1; }
+}
+
+.modal-header {
+  padding: 20px 24px 16px;
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.modal-close {
+  background: none; border: none; cursor: pointer;
+  font-size: 18px; color: var(--text-3); padding: 2px 6px;
+}
+
+.modal-close:hover { color: var(--text); }
+
+.modal-body { padding: 20px 24px; }
+
+.form-group { margin-bottom: 16px; }
+
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-3);
+  margin-bottom: 6px;
+}
+
+.form-input, .form-select, .form-textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  background: var(--white);
+  outline: none;
+  transition: border 0.12s;
+}
+
+.form-input:focus, .form-select:focus, .form-textarea:focus {
+  border-color: var(--accent);
+}
+
+.form-textarea { resize: vertical; min-height: 70px; }
+
+.form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+
+.modal-footer {
+  padding: 16px 24px;
+  border-top: 1px solid var(--border);
+  display: flex; justify-content: flex-end; gap: 8px;
+}
+
+.btn-cancel {
+  background: none; border: 1px solid var(--border);
+  border-radius: 4px; padding: 8px 16px;
+  font-size: 13px; font-family: 'DM Sans', sans-serif;
+  color: var(--text-2); cursor: pointer;
+}
+
+.btn-cancel:hover { border-color: var(--text); color: var(--text); }
+
+.btn-save {
+  background: var(--accent); border: none;
+  border-radius: 4px; padding: 8px 20px;
+  font-size: 13px; font-family: 'DM Sans', sans-serif;
+  color: white; cursor: pointer; font-weight: 500;
+}
+
+.btn-save:hover { background: #a83e18; }
+
+/* STATUS DROPDOWN */
+.status-dropdown {
+  position: relative; display: inline-block;
+}
+
+.status-menu {
+  display: none;
+  position: absolute; top: calc(100% + 4px); left: 0;
+  background: var(--white);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  z-index: 50;
+  min-width: 140px;
+  overflow: hidden;
+}
+
+.status-menu.open { display: block; }
+
+.status-option {
+  padding: 8px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex; align-items: center; gap: 8px;
+}
+
+.status-option:hover { background: var(--bg); }
+
+/* EMPTY STATE */
+.empty-row td {
+  text-align: center;
+  padding: 32px;
+  color: var(--text-3);
+  font-style: italic;
+}
+
+/* PROGRESS BAR */
+.progress-bar-wrap {
+  height: 3px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-top: 4px;
+  width: 80px;
+}
+
+.progress-bar-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  transition: width 0.4s;
+}
+
+/* COLLAPSED */
+.phase-body.collapsed { display: none; }
+
+/* LAST ACTION */
+.last-action-text { font-size: 11px; color: var(--text-3); max-width: 160px; line-height: 1.4; }
+
+@media (max-width: 600px) {
+  .header { padding: 14px 16px; }
+  .toolbar { padding: 10px 16px; }
+  .phase-section { margin: 14px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">G-<span>Fast</span></div>
+    <div class="header-sub">Launch Task Tracker — 90 Days</div>
+  </div>
+  <div class="header-right">
+    <div class="stat-pill">Total <strong id="stat-total">0</strong></div>
+    <div class="stat-pill" style="background:#dcfce7; border-color:#bbf7d0; color:#15803d">Done <strong id="stat-done">0</strong></div>
+    <div class="stat-pill" style="background:#dbeafe; border-color:#bfdbfe; color:#1d4ed8">In Progress <strong id="stat-progress">0</strong></div>
+    <div class="stat-pill" style="background:#fee2e2; border-color:#fecaca; color:#b91c1c">Blocked <strong id="stat-blocked">0</strong></div>
+  </div>
+</div>
+
+<!-- TOOLBAR -->
+<div class="toolbar">
+  <span class="filter-label">Filter:</span>
+  <button class="filter-btn active" onclick="setFilter('all', this)">All</button>
+  <button class="filter-btn" onclick="setFilter('todo', this)">To Do</button>
+  <button class="filter-btn" onclick="setFilter('inprogress', this)">In Progress</button>
+  <button class="filter-btn" onclick="setFilter('blocked', this)">Blocked</button>
+  <button class="filter-btn" onclick="setFilter('done', this)">Done</button>
+  <button class="filter-btn" onclick="setFilter('deferred', this)">Deferred</button>
+  <div class="search-wrap">
+    <input type="text" placeholder="Search tasks..." oninput="searchTasks(this.value)" id="searchInput">
+  </div>
+  <button class="add-btn" onclick="openAddModal()">+ Add Task</button>
+</div>
+
+<!-- TASK SECTIONS -->
+<div id="phases-container"></div>
+
+<!-- STATUS DROPDOWN MENU (shared) -->
+<div class="status-menu" id="statusMenu">
+  <div class="status-option" onclick="setStatus('todo')"><span class="status-badge todo">To Do</span></div>
+  <div class="status-option" onclick="setStatus('inprogress')"><span class="status-badge inprogress">In Progress</span></div>
+  <div class="status-option" onclick="setStatus('blocked')"><span class="status-badge blocked">Blocked</span></div>
+  <div class="status-option" onclick="setStatus('done')"><span class="status-badge done">Done</span></div>
+  <div class="status-option" onclick="setStatus('deferred')"><span class="status-badge deferred">Deferred</span></div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModalIfBg(event)">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title" id="modalTitle">Add Task</div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editTaskId">
+      <div class="form-group">
+        <label class="form-label">Task Name *</label>
+        <input type="text" class="form-input" id="fName" placeholder="e.g. Build pricing lookup Edge Function">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Description</label>
+        <textarea class="form-textarea" id="fDesc" placeholder="Brief description of what needs to be done..."></textarea>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Phase</label>
+          <select class="form-select" id="fPhase">
+            <option value="commercial">Commercial</option>
+            <option value="phase1">Phase 1 — Days 1–30</option>
+            <option value="phase2">Phase 2 — Days 31–60</option>
+            <option value="phase3">Phase 3 — Days 61–90</option>
+            <option value="pricing">Pricing Integration</option>
+            <option value="deferred">Deferred</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Status</label>
+          <select class="form-select" id="fStatus">
+            <option value="todo">To Do</option>
+            <option value="inprogress">In Progress</option>
+            <option value="blocked">Blocked</option>
+            <option value="done">Done</option>
+            <option value="deferred">Deferred</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Owner</label>
+          <input type="text" class="form-input" id="fOwner" placeholder="e.g. Hussein">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Due Date</label>
+          <input type="date" class="form-input" id="fDate">
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Dependency (task name)</label>
+        <input type="text" class="form-input" id="fDep" placeholder="e.g. Parts Master List">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Last Action / Note</label>
+        <input type="text" class="form-input" id="fNote" placeholder="e.g. Schema drafted, awaiting review">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveTask()">Save Task</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── DATA ───────────────────────────────────────────────
+const PHASES = [
+  { id:'commercial', label:'Commercial & Pre-Sales', days:'Ongoing', color:'#c94b1e' },
+  { id:'phase1',     label:'Phase 1 — Build for Trial', days:'Days 1–30', color:'#1d4ed8' },
+  { id:'phase2',     label:'Phase 2 — Pilot Delivery', days:'Days 31–60', color:'#0f766e' },
+  { id:'phase3',     label:'Phase 3 — Convert & Scale', days:'Days 61–90', color:'#7c3aed' },
+  { id:'pricing',    label:'Pricing Integration', days:'Technical', color:'#b45309' },
+  { id:'deferred',   label:'Deferred — Post First Contract', days:'Later', color:'#9ca3af' },
+];
+
+let tasks = [
+  // COMMERCIAL
+  { id:1, phase:'commercial', name:'Lock per-assessment price point', desc:'Decide final EGP price below 1,200 EGP manual cost floor. No ranges — one number before first meeting.', status:'todo', owner:'Hussein', date:'2025-06-07', dep:'', note:'' },
+  { id:2, phase:'commercial', name:'ROI Brief — Allianz', desc:'1-pager: current 400–1,200 EGP/claim cost vs G-Fast fee. Show savings per 100 claims.', status:'todo', owner:'Hussein', date:'2025-06-14', dep:'Lock price point', note:'' },
+  { id:3, phase:'commercial', name:'ROI Brief — AXA', desc:'Tailored version for AXA contact. Same structure, personalized figures if available.', status:'todo', owner:'Hussein', date:'2025-06-14', dep:'Lock price point', note:'' },
+  { id:4, phase:'commercial', name:'Pilot proposal template (MOU)', desc:'50–100 claim zero-risk structure. 30-day duration, side-by-side comparison, no integration needed. 1-page legal template.', status:'todo', owner:'Hussein', date:'2025-06-14', dep:'', note:'' },
+  { id:5, phase:'commercial', name:'First insurer meeting (Allianz or AXA)', desc:'Present ROI brief + pilot proposal. Goal: signed MOU before end of week 4.', status:'todo', owner:'Hussein', date:'2025-06-21', dep:'ROI Brief, Pilot proposal', note:'' },
+  { id:6, phase:'commercial', name:'Receive insurer price list (CSV/Excel)', desc:'Ask insurer to share their approved spare parts rates. Validate against parts master before loading.', status:'todo', owner:'Hussein', date:'2025-07-01', dep:'MOU signed', note:'' },
+
+  // PHASE 1
+  { id:7, phase:'phase1', name:'Parts master list (200 parts)', desc:'Standardized Egyptian motor parts with codes: BUMPER_FRONT, HEADLIGHT_L, HOOD, etc. One-time core data asset.', status:'todo', owner:'', date:'2025-06-07', dep:'', note:'' },
+  { id:8, phase:'phase1', name:'Supabase — parts_master table', desc:'Schema: part_code PK, name_en, name_ar, category. Run migration.', status:'todo', owner:'', date:'2025-06-07', dep:'Parts master list', note:'' },
+  { id:9, phase:'phase1', name:'Supabase — parts_prices table', desc:'Schema: id UUID, part_code, insurer_id, vehicle_category, repair_price, replace_price, labour_price, last_updated. RLS per insurer_id.', status:'todo', owner:'', date:'2025-06-10', dep:'parts_master table', note:'' },
+  { id:10, phase:'phase1', name:'CSV price ingestion script', desc:'Node.js: parse CSV → validate against parts_master → upsert into parts_prices. Admin-run for pilot (no portal yet).', status:'todo', owner:'', date:'2025-06-12', dep:'parts_prices table', note:'' },
+  { id:11, phase:'phase1', name:'AI → parts mapping layer', desc:'Maps AI output (damaged part + repair/replace) to standardized part_code. Lookup function in Node.js / Edge Functions.', status:'todo', owner:'', date:'2025-06-14', dep:'parts_master table', note:'' },
+  { id:12, phase:'phase1', name:'Pricing lookup Edge Function', desc:'Input: [{part_code, action}] + insurer_id. Output: costed line items + total EGP. Vehicle category aware.', status:'todo', owner:'', date:'2025-06-17', dep:'parts_prices table, AI→parts mapping', note:'' },
+  { id:13, phase:'phase1', name:'Costed estimate output in dashboard', desc:'Assessment result shows: part | action | unit price | labour | total. Final row = total estimate.', status:'todo', owner:'', date:'2025-06-19', dep:'Pricing lookup Edge Function', note:'' },
+  { id:14, phase:'phase1', name:'PDF export — assessment report', desc:'Branded PDF: parts table, total estimate, AI confidence, claim ID. Puppeteer or html-pdf. Export button in dashboard.', status:'todo', owner:'', date:'2025-06-21', dep:'Costed estimate output', note:'' },
+
+  // PHASE 2
+  { id:15, phase:'phase2', name:'Load insurer price list into Supabase', desc:'Use CSV ingestion script with received insurer file. Validate all parts map to master list. Flag gaps.', status:'todo', owner:'', date:'2025-07-05', dep:'CSV ingestion script, Insurer price list received', note:'' },
+  { id:16, phase:'phase2', name:'Process first batch of real claims', desc:'Run 10–20 claims through AI engine with live pricing. Verify estimate output is correct before scaling.', status:'todo', owner:'', date:'2025-07-07', dep:'Load insurer prices', note:'' },
+  { id:17, phase:'phase2', name:'Accuracy tracking table', desc:'Supabase: claim_id, ai_output, adjuster_result, match (bool), override_note. Powers pilot summary.', status:'todo', owner:'', date:'2025-07-07', dep:'', note:'' },
+  { id:18, phase:'phase2', name:'Turnaround time logging', desc:'Log timestamps: submission → AI result. Compare against insurer\'s current days-long process.', status:'todo', owner:'', date:'2025-07-07', dep:'', note:'' },
+  { id:19, phase:'phase2', name:'Edge case queue (low confidence)', desc:'Flag assessments below confidence threshold for human review before delivery. Status: auto_approved / pending_review / reviewed.', status:'todo', owner:'', date:'2025-07-10', dep:'', note:'' },
+  { id:20, phase:'phase2', name:'Adjuster override / notes UI', desc:'Dashboard: flag result, add note, submit correction. Feeds accuracy tracking. Critical for trust-building.', status:'todo', owner:'', date:'2025-07-10', dep:'Accuracy tracking table', note:'' },
+  { id:21, phase:'phase2', name:'Claim search & filter', desc:'Insurer adjuster can search by claim ID, date, vehicle, status. Needed for 50+ claim pilot.', status:'todo', owner:'', date:'2025-07-12', dep:'', note:'' },
+  { id:22, phase:'phase2', name:'Complete all 50–100 pilot claims', desc:'Full claim batch processed. All results reviewed or auto-approved. Edge cases resolved.', status:'todo', owner:'', date:'2025-07-28', dep:'All Phase 2 features', note:'' },
+  { id:23, phase:'phase2', name:'Pilot results summary (1-pager)', desc:'Auto-generated: total claims, accuracy %, avg turnaround, estimated cost saved. Insurer-shareable internal doc.', status:'todo', owner:'Hussein', date:'2025-07-30', dep:'Complete all pilot claims', note:'' },
+
+  // PHASE 3
+  { id:24, phase:'phase3', name:'Pilot review meeting with insurer', desc:'Walk through results summary. Present cost savings data. Transition conversation to paid SaaS contract.', status:'todo', owner:'Hussein', date:'2025-08-03', dep:'Pilot results summary', note:'' },
+  { id:25, phase:'phase3', name:'Negotiate first paid SaaS contract', desc:'Anchor price to demonstrated savings from pilot data. Per-assessment fee structure.', status:'todo', owner:'Hussein', date:'2025-08-10', dep:'Pilot review meeting', note:'' },
+  { id:26, phase:'phase3', name:'Multi-insurer data isolation (verify)', desc:'Confirm RLS policies isolate price data per insurer_id in prod. Each insurer sees only their own data.', status:'todo', owner:'', date:'2025-08-05', dep:'', note:'' },
+  { id:27, phase:'phase3', name:'Role-based access (RBAC)', desc:'Supabase RLS: insurer_admin, adjuster, workshop roles. Required before second insurer onboards.', status:'todo', owner:'', date:'2025-08-10', dep:'', note:'' },
+  { id:28, phase:'phase3', name:'Usage counter (billing foundation)', desc:'assessments_usage table: insurer_id, period, count. Foundation for per-assessment SaaS invoicing.', status:'todo', owner:'', date:'2025-08-12', dep:'', note:'' },
+  { id:29, phase:'phase3', name:'Anonymized pilot case study', desc:'1-page reference doc using pilot results (insurer unnamed). Used in all subsequent outreach as social proof.', status:'todo', owner:'Hussein', date:'2025-08-10', dep:'Paid contract signed', note:'' },
+  { id:30, phase:'phase3', name:'Workshop activation (via insurer mandate)', desc:'Brief 2–3 workshops working with first insurer. Use insurer relationship as trigger — no cold outreach.', status:'todo', owner:'Hussein', date:'2025-08-15', dep:'Paid contract signed', note:'' },
+  { id:31, phase:'phase3', name:'Second insurer outreach', desc:'Approach Allianz or AXA (whichever wasn\'t first). Lead with case study + live reference contact.', status:'todo', owner:'Hussein', date:'2025-08-20', dep:'Anonymized case study', note:'' },
+  { id:32, phase:'phase3', name:'Insurer self-serve onboarding flow', desc:'Upload price list → set vehicle categories → invite users. Reduces manual effort per new customer.', status:'todo', owner:'', date:'2025-08-25', dep:'RBAC done', note:'' },
+
+  // PRICING INTEGRATION
+  { id:33, phase:'pricing', name:'Vehicle category tiering', desc:'Economy / mid / luxury price tiers in parts_prices. Pricing per assessment reflects vehicle class.', status:'todo', owner:'', date:'2025-06-21', dep:'parts_prices table', note:'' },
+  { id:34, phase:'pricing', name:'AI/ML hire or contractor', desc:'Part-time contractor for pilot period to monitor model performance and handle edge cases. Full hire post-contract.', status:'todo', owner:'Hussein', date:'2025-06-28', dep:'', note:'' },
+
+  // DEFERRED
+  { id:35, phase:'deferred', name:'Workshop self-serve portal', desc:'Workshops upload and manage their own price lists. Build only after insurer contract funds it.', status:'deferred', owner:'', date:'', dep:'First paid contract', note:'' },
+  { id:36, phase:'deferred', name:'Benchmark price database', desc:'Aggregated spare parts pricing across Egyptian workshops. Premium add-on for insurers.', status:'deferred', owner:'', date:'', dep:'First paid contract', note:'' },
+  { id:37, phase:'deferred', name:'Fraud / price anomaly detection', desc:'Flag workshop quotes deviating from benchmark. High-value feature — requires benchmark DB first.', status:'deferred', owner:'', date:'', dep:'Benchmark DB', note:'' },
+  { id:38, phase:'deferred', name:'Insurer API integration', desc:'Pull prices from insurer existing systems via API. Only worth building when specifically requested.', status:'deferred', owner:'', date:'', dep:'First paid contract', note:'' },
+  { id:39, phase:'deferred', name:'Pitch deck overhaul', desc:'Refine deck with real unit economics from actual pilot. Stronger pivot story + milestone-anchored ask.', status:'deferred', owner:'Hussein', date:'', dep:'First paid contract', note:'' },
+  { id:40, phase:'deferred', name:'Funding raise', desc:'Raise conversation changes completely with signed contract. Defer until pilot data in hand.', status:'deferred', owner:'Hussein', date:'', dep:'First paid contract', note:'' },
+];
+
+let nextId = 41;
+let currentFilter = 'all';
+let currentSearchQuery = '';
+let activeStatusTaskId = null;
+let collapsedPhases = {};
+
+// ─── RENDER ─────────────────────────────────────────────
+function render() {
+  updateStats();
+  const container = document.getElementById('phases-container');
+  container.innerHTML = '';
+
+  PHASES.forEach(phase => {
+    let phaseTasks = tasks.filter(t => t.phase === phase.id);
+
+    // Apply filter
+    if (currentFilter !== 'all') {
+      phaseTasks = phaseTasks.filter(t => t.status === currentFilter);
+    }
+
+    // Apply search
+    if (currentSearchQuery) {
+      const q = currentSearchQuery.toLowerCase();
+      phaseTasks = phaseTasks.filter(t =>
+        t.name.toLowerCase().includes(q) ||
+        t.desc.toLowerCase().includes(q) ||
+        t.owner.toLowerCase().includes(q) ||
+        t.dep.toLowerCase().includes(q)
+      );
+    }
+
+    if (currentFilter !== 'all' && phaseTasks.length === 0) return;
+
+    const doneCount = phaseTasks.filter(t => t.status === 'done').length;
+    const pct = phaseTasks.length ? Math.round(doneCount / phaseTasks.length * 100) : 0;
+    const collapsed = collapsedPhases[phase.id];
+
+    const section = document.createElement('div');
+    section.className = 'phase-section';
+    section.innerHTML = `
+      <div class="phase-header-row" onclick="togglePhase('${phase.id}')">
+        <span class="phase-toggle ${collapsed ? 'collapsed' : ''}">▼</span>
+        <span class="phase-title-label" style="color:${phase.color}">${phase.label}</span>
+        <span class="phase-days">${phase.days}</span>
+        <div class="progress-bar-wrap">
+          <div class="progress-bar-fill" style="width:${pct}%; background:${phase.color}"></div>
+        </div>
+        <span style="font-size:11px; color:var(--text-3); margin-left:4px">${pct}%</span>
+        <span class="phase-count">${phaseTasks.length} tasks</span>
+      </div>
+      <div class="phase-body ${collapsed ? 'collapsed' : ''}">
+        <div class="table-wrap">
+          <table class="task-table">
+            <thead>
+              <tr>
+                <th style="width:32px"></th>
+                <th class="sortable">Task</th>
+                <th>Status</th>
+                <th>Owner</th>
+                <th>Due Date</th>
+                <th>Dependency</th>
+                <th>Last Action</th>
+                <th style="width:40px"></th>
+              </tr>
+            </thead>
+            <tbody>
+              ${phaseTasks.length === 0
+                ? `<tr class="empty-row"><td colspan="8">No tasks match this filter</td></tr>`
+                : phaseTasks.map(t => renderRow(t, phase.color)).join('')
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+    container.appendChild(section);
+  });
+}
+
+function renderRow(t, phaseColor) {
+  const today = new Date(); today.setHours(0,0,0,0);
+  const dueDate = t.date ? new Date(t.date) : null;
+  let dateClass = 'date-cell';
+  if (dueDate && t.status !== 'done') {
+    if (dueDate < today) dateClass += ' overdue';
+    else if ((dueDate - today) / 86400000 <= 7) dateClass += ' upcoming';
+  }
+
+  const statusLabels = { todo:'To Do', inprogress:'In Progress', blocked:'Blocked', done:'Done', deferred:'Deferred' };
+  const ownerInitials = t.owner ? t.owner.split(' ').map(w=>w[0]).join('').slice(0,2).toUpperCase() : '';
+  const avatarColors = { hussein:'#c94b1e', team:'#1d4ed8', tech:'#0f766e' };
+  const avatarBg = t.owner ? '#1a1814' : '#e8e4dc';
+  const avatarColor = t.owner ? 'white' : '#a09890';
+
+  const deps = t.dep ? t.dep.split(',').map(d => `<span class="dep-tag">${d.trim()}</span>`).join('') : '<span style="color:var(--text-3); font-size:11px">—</span>';
+
+  return `
+    <tr class="${t.status === 'done' ? 'done-row' : ''}" id="row-${t.id}">
+      <td style="text-align:center">
+        <input type="checkbox" ${t.status==='done'?'checked':''} onchange="toggleDone(${t.id}, this.checked)"
+          style="cursor:pointer; accent-color:var(--accent); width:14px; height:14px;">
+      </td>
+      <td class="task-name-cell">
+        <div class="task-name" onclick="openEditModal(${t.id})">${t.name}</div>
+        ${t.desc ? `<div class="task-desc">${t.desc.length > 80 ? t.desc.slice(0,80)+'…' : t.desc}</div>` : ''}
+      </td>
+      <td>
+        <button class="status-badge ${t.status}" onclick="openStatusMenu(event, ${t.id})">
+          ${statusLabels[t.status]} ▾
+        </button>
+      </td>
+      <td>
+        <div class="owner-cell">
+          <div class="owner-avatar" style="background:${avatarBg}; color:${avatarColor}">${ownerInitials || '?'}</div>
+          <span contenteditable="true" class="editable ${t.owner?'':'empty'}"
+            onblur="updateField(${t.id}, 'owner', this.textContent.trim())"
+            onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          >${t.owner || 'Unassigned'}</span>
+        </div>
+      </td>
+      <td>
+        <span class="${dateClass}" contenteditable="false">
+          <input type="date" value="${t.date||''}"
+            style="border:1px solid transparent; background:none; font-size:12px; font-family:'DM Sans',sans-serif; color:inherit; cursor:pointer; border-radius:3px; padding:2px 4px; outline:none;"
+            onchange="updateField(${t.id}, 'date', this.value)"
+            onfocus="this.style.borderColor='var(--accent)'; this.style.background='white'"
+            onblur="this.style.borderColor='transparent'; this.style.background='none'"
+          >
+        </span>
+      </td>
+      <td>${deps}</td>
+      <td>
+        <div class="last-action-text" contenteditable="true"
+          onblur="updateField(${t.id}, 'note', this.textContent.trim())"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();this.blur()}"
+          style="${!t.note ? 'color:var(--text-3); font-style:italic' : ''}"
+        >${t.note || 'Add note…'}</div>
+      </td>
+      <td>
+        <button onclick="deleteTask(${t.id})" style="background:none; border:none; color:var(--text-3); cursor:pointer; font-size:14px; padding:4px 6px; border-radius:3px;" title="Delete task"
+          onmouseover="this.style.color='var(--accent)'; this.style.background='var(--accent-light)'"
+          onmouseout="this.style.color='var(--text-3)'; this.style.background='none'">
+          ✕
+        </button>
+      </td>
+    </tr>
+  `;
+}
+
+function updateStats() {
+  document.getElementById('stat-total').textContent = tasks.length;
+  document.getElementById('stat-done').textContent = tasks.filter(t=>t.status==='done').length;
+  document.getElementById('stat-progress').textContent = tasks.filter(t=>t.status==='inprogress').length;
+  document.getElementById('stat-blocked').textContent = tasks.filter(t=>t.status==='blocked').length;
+}
+
+// ─── INTERACTIONS ────────────────────────────────────────
+function togglePhase(id) {
+  collapsedPhases[id] = !collapsedPhases[id];
+  render();
+}
+
+function toggleDone(id, checked) {
+  const t = tasks.find(t=>t.id===id);
+  if (t) {
+    t.status = checked ? 'done' : 'todo';
+    render();
+  }
+}
+
+function updateField(id, field, value) {
+  const t = tasks.find(t=>t.id===id);
+  if (t) { t[field] = value; updateStats(); }
+}
+
+// STATUS MENU
+let activeStatusMenu = null;
+
+function openStatusMenu(e, id) {
+  e.stopPropagation();
+  const menu = document.getElementById('statusMenu');
+
+  if (activeStatusMenu === id && menu.classList.contains('open')) {
+    menu.classList.remove('open');
+    activeStatusMenu = null;
+    return;
+  }
+
+  activeStatusTaskId = id;
+  activeStatusMenu = id;
+  const rect = e.currentTarget.getBoundingClientRect();
+  menu.style.top = (rect.bottom + window.scrollY + 4) + 'px';
+  menu.style.left = rect.left + 'px';
+  menu.classList.add('open');
+}
+
+function setStatus(status) {
+  if (activeStatusTaskId !== null) {
+    const t = tasks.find(t => t.id === activeStatusTaskId);
+    if (t) t.status = status;
+    document.getElementById('statusMenu').classList.remove('open');
+    activeStatusTaskId = null;
+    render();
+  }
+}
+
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('statusMenu');
+  if (!menu.contains(e.target)) {
+    menu.classList.remove('open');
+    activeStatusMenu = null;
+  }
+});
+
+// FILTER
+function setFilter(f, btn) {
+  currentFilter = f;
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+}
+
+// SEARCH
+function searchTasks(q) {
+  currentSearchQuery = q;
+  render();
+}
+
+// ─── MODAL ───────────────────────────────────────────────
+function openAddModal() {
+  document.getElementById('modalTitle').textContent = 'Add Task';
+  document.getElementById('editTaskId').value = '';
+  document.getElementById('fName').value = '';
+  document.getElementById('fDesc').value = '';
+  document.getElementById('fPhase').value = 'phase1';
+  document.getElementById('fStatus').value = 'todo';
+  document.getElementById('fOwner').value = '';
+  document.getElementById('fDate').value = '';
+  document.getElementById('fDep').value = '';
+  document.getElementById('fNote').value = '';
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function openEditModal(id) {
+  const t = tasks.find(t=>t.id===id);
+  if (!t) return;
+  document.getElementById('modalTitle').textContent = 'Edit Task';
+  document.getElementById('editTaskId').value = id;
+  document.getElementById('fName').value = t.name;
+  document.getElementById('fDesc').value = t.desc;
+  document.getElementById('fPhase').value = t.phase;
+  document.getElementById('fStatus').value = t.status;
+  document.getElementById('fOwner').value = t.owner;
+  document.getElementById('fDate').value = t.date;
+  document.getElementById('fDep').value = t.dep;
+  document.getElementById('fNote').value = t.note;
+  document.getElementById('modalOverlay').classList.add('open');
+}
+
+function closeModal() {
+  document.getElementById('modalOverlay').classList.remove('open');
+}
+
+function closeModalIfBg(e) {
+  if (e.target === document.getElementById('modalOverlay')) closeModal();
+}
+
+function saveTask() {
+  const name = document.getElementById('fName').value.trim();
+  if (!name) { alert('Task name is required.'); return; }
+
+  const editId = document.getElementById('editTaskId').value;
+
+  const data = {
+    name,
+    desc: document.getElementById('fDesc').value.trim(),
+    phase: document.getElementById('fPhase').value,
+    status: document.getElementById('fStatus').value,
+    owner: document.getElementById('fOwner').value.trim(),
+    date: document.getElementById('fDate').value,
+    dep: document.getElementById('fDep').value.trim(),
+    note: document.getElementById('fNote').value.trim(),
+  };
+
+  if (editId) {
+    const t = tasks.find(t=>t.id===parseInt(editId));
+    if (t) Object.assign(t, data);
+  } else {
+    tasks.push({ id: nextId++, ...data });
+  }
+
+  closeModal();
+  render();
+}
+
+function deleteTask(id) {
+  if (confirm('Delete this task?')) {
+    tasks = tasks.filter(t => t.id !== id);
+    render();
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────
+render();
+</script>
+</body>
+</html>
